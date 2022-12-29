@@ -30,7 +30,7 @@ int main()
     Mat imageE = fullImage(Range(imgPadding + imgPartHeight, imgPadding + imgPartHeight * 2 - 1), Range(imgPadding + imgPartWidth, imgPadding + imgPartWidth * 2 - 1));
     Mat imageF = fullImage(Range(imgPadding + imgPartHeight, imgPadding + imgPartHeight * 2 - 1), Range(imgPadding * 2 + imgPartWidth * 2, imgPadding * 2 + imgPartWidth * 3 - 1));
     Mat images[imagesCount] = {imageA, imageB, imageC, imageD, imageE, imageF};
-    
+
     Mat separateColorspace[imagesCount][colors];
     for (int i = 0; i < imagesCount; i++) {
         Mat colorSplitImage[colors];
@@ -49,11 +49,38 @@ int main()
             separateColorspace[i][j] = tmpResult;
         }
     }
+    
+    
+    Mat reducedColorspace[imagesCount][colors];
+    int clusters = 2;
+    double accuracy = 1;
+    int maxIterations = 10;
+    int attempts = 3;
+    for (int i = 0; i < imagesCount; i++) {
+        for (int j = 0; j < colors; j++) {
+            int pixels = images[i].rows * images[i].cols;
+            Mat kmeansImage = separateColorspace[i][j].reshape(colors, pixels);
+            kmeansImage.convertTo(kmeansImage, CV_32FC2);
+            Mat1i labels;
+            Mat1f centers;
+            kmeans(kmeansImage, clusters, labels, TermCriteria(TermCriteria::MAX_ITER + TermCriteria::EPS, maxIterations, accuracy), attempts, KMEANS_PP_CENTERS, centers);
+            
+            for (int k = 0; k < pixels; k++) {
+                for (int l = 0; l < colors; l++) {
+                    kmeansImage.at<float>(k, l) = centers[labels[k][0]][l];
+                }
+            }
+
+            reducedColorspace[i][j] = kmeansImage.reshape(colors, images[i].rows);
+            reducedColorspace[i][j].convertTo(reducedColorspace[i][j], CV_8UC1);
+        }
+    }
+    
 
     Mat grayImages[imagesCount][colors];
     for (int i = 0; i < imagesCount; i++) {
         for (int j = 0; j < colors; j++) {
-            cvtColor(separateColorspace[i][j], grayImages[i][j], COLOR_BGR2GRAY);
+            cvtColor(reducedColorspace[i][j], grayImages[i][j], COLOR_BGR2GRAY);
             equalizeHist(grayImages[i][j], grayImages[i][j]);
         }
     }
@@ -73,7 +100,7 @@ int main()
     bool l2Gradient = false;
     for (int i = 0; i < imagesCount; i++) {
         for (int j = 0; j < colors; j++) {
-            Canny(grayImages[i][j], edges[i][j], lowThreshold, highThreshold, apertureSize, l2Gradient);
+            Canny(gaussianBlurImages[i][j], edges[i][j], lowThreshold, highThreshold, apertureSize, l2Gradient);
         }
     }
 
