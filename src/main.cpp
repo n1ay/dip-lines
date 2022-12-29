@@ -104,11 +104,11 @@ int main()
         }
     }
 
-    int rho = 1;
+    double rho = 1.0;
     double theta = M_PI / 180;
-    int threshold = 25;
-    int minLineLength = 15;
-    int maxLineGap = 0;
+    int threshold = 30;
+    double minLineLength = 15.0;
+    double maxLineGap = 1.0;
     std::vector<Vec4i> lines[imagesCount][colors];
     for (int i = 0; i < imagesCount; i++) {
         for (int j = 0; j < colors; j++) {
