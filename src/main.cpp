@@ -94,10 +94,10 @@ int main()
     }
 
     Mat edges[imagesCount][colors];
-    int lowThreshold = 1;
-    int highThreshold = 5;
-    int apertureSize = 3;
-    bool l2Gradient = false;
+    int lowThreshold = 100;
+    int highThreshold = 200;
+    int apertureSize = 5;
+    bool l2Gradient = true;
     for (int i = 0; i < imagesCount; i++) {
         for (int j = 0; j < colors; j++) {
             Canny(gaussianBlurImages[i][j], edges[i][j], lowThreshold, highThreshold, apertureSize, l2Gradient);
